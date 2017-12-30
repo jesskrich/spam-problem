@@ -4,7 +4,29 @@
 (ns spam-problem.core
     (:gen-class)
     (:require [clojure.spec.alpha :as s]
-              [clojure.spec.gen.alpha :as gen]))
+              [clojure.spec.gen.alpha :as gen]
+              [clojure.java.jdbc :as j]))
+
+
+; (def db-map {:classname "com.mysql.jdbc.Driver"
+;             :subprotocol "mysql"
+;             :subname "//localhost:8889/email_records"
+;             :user "root"
+;             :password ""})
+
+(def db-map {:subprotocol "mysql"
+             :subname "//localhost:8889/email_records"
+             :user "root"
+             :password "root"})
+
+; (def db-map {:dbtype "mysql"
+;                :dbname "email_records"
+;                :user "root"})
+
+(defn factorial [n]
+    (if (< n 3)
+        n
+        (* n (factorial (dec n)))))
 
 (defn message-to-user [message]
     (println message))
@@ -47,7 +69,10 @@
 (defn print-record [email-rec]
     (purge-duplicate-records email-rec))
 
-;
+    (j/insert-multi! db-map :records
+      [{:email_address "test@g.com" :spam_score 0.05}
+       {:email_address "yo@g.com" :spam_score 0.03}])
+; ;
 ; (def email-domains
 ;     #{"indeediot.com"
 ;       "monstrous.com"
@@ -77,9 +102,9 @@
 ;
 ; (s/def ::email-record
 ;     (s/keys :req-un [::email-address ::spam-score]))
+(j/query db-map ["SELECT * FROM records"])
 ;
-;
-; (defn -main
-;   "I don't do a whole lot ... yet."
-;   [& args]
-;   (println "hello"))
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (println "hello"))
