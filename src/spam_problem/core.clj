@@ -5,7 +5,10 @@
     (:gen-class)
     (:require [clojure.spec.alpha :as s]
               [clojure.spec.gen.alpha :as gen]
-              [clojure.java.jdbc :as j]))
+              [spam-problem.connection :as c]
+              [spam-problem.view :as v]
+              [ring.adapter.jetty :as jetty]
+              [selmer.parser :as tmpl]))
 
 
 ; (def db-map {:classname "com.mysql.jdbc.Driver"
@@ -69,9 +72,9 @@
 (defn print-record [email-rec]
     (purge-duplicate-records email-rec))
 
-    (j/insert-multi! db-map :records
-      [{:email_address "test@g.com" :spam_score 0.05}
-       {:email_address "yo@g.com" :spam_score 0.03}])
+    ; (j/insert-multi! db-map :records
+    ;   [{:email_address "test@g.com" :spam_score 0.05}
+    ;    {:email_address "yo@g.com" :spam_score 0.03}])
 ; ;
 ; (def email-domains
 ;     #{"indeediot.com"
@@ -102,9 +105,18 @@
 ;
 ; (s/def ::email-record
 ;     (s/keys :req-un [::email-address ::spam-score]))
-(j/query db-map ["SELECT * FROM records"])
+
+(defn handler [request]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (tmpl/render-file "hello.html" {:name "Jess"})})
+
+; (j/query db-map ["SELECT * FROM records"])
+(tmpl/render-file "hello.html" {:name "Jess"})
 ;
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "hello"))
+  (c/add-new-record-to-db db-map)
+  (jetty/run-jetty handler {:port 3000})
+  (v/application "SPAM PROBLEM" "I am the spam problem content"))
